@@ -708,20 +708,26 @@ Briefings / Ask / Explorer / Retirement"]:::ui
   });
 </script>
 
-<script type="module">
+<script>
   // This file is served two ways: as a Claude Artifact (which renders
   // <pre class="mermaid"> blocks natively — no script needed there) and
   // as a plain static file straight from the GitHub repo (via
   // htmlpreview.github.io or opened locally), which has no such native
-  // handling. Detect the unrendered case and load Mermaid ourselves so
-  // the diagram still renders wherever this file is actually viewed.
-  const unrendered = document.querySelector("pre.mermaid");
-  if (unrendered && !unrendered.querySelector("svg")) {
-    try {
-      const mermaid = (await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs")).default;
-      mermaid.initialize({ startOnLoad: true, theme: "dark" });
-    } catch (e) {
-      console.warn("Mermaid CDN load failed; diagram will show as raw text.", e);
-    }
-  }
+  // handling. Detect the unrendered case and load the classic (non-module)
+  // Mermaid build ourselves — htmlpreview.github.io's injection mechanism
+  // mangles `type="module"` scripts, so this deliberately avoids ES
+  // modules and dynamic import() entirely for maximum compatibility.
+  (function () {
+    var unrendered = document.querySelector("pre.mermaid");
+    if (!unrendered || unrendered.querySelector("svg")) return;
+    var script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+    script.onload = function () {
+      window.mermaid.initialize({ startOnLoad: true, theme: "dark" });
+    };
+    script.onerror = function () {
+      console.warn("Mermaid CDN load failed; diagram will show as raw text.");
+    };
+    document.body.appendChild(script);
+  })();
 </script>
