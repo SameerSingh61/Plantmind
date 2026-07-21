@@ -4,7 +4,7 @@ traversal already proved — see graph/rules.py for the reasoning step.
 """
 import json
 
-from graph.llm import call_claude
+from graph.llm import call_llm
 
 SYSTEM_PROMPT = """You are the operations intelligence layer for Kaveri Refinery Unit 3.
 You generate short, factual briefings that appear unprompted on a
@@ -116,7 +116,7 @@ def generate_briefing(payload: dict) -> dict:
         return {"text": "NO_BRIEFING", "source": "rule", "payload": payload}
 
     user_message = json.dumps(payload, indent=2)
-    llm_text = call_claude(SYSTEM_PROMPT, user_message, max_tokens=350)
+    llm_text = call_llm(SYSTEM_PROMPT, user_message, max_tokens=350)
     if llm_text and llm_text != "NO_BRIEFING":
         return {"text": llm_text, "source": "llm", "payload": payload}
 

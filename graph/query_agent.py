@@ -7,7 +7,7 @@ import json
 import re
 import time
 
-from graph.llm import call_claude
+from graph.llm import call_llm
 
 SYSTEM_PROMPT = """You are the grounded query layer for Kaveri Refinery Unit 3's knowledge graph.
 
@@ -151,7 +151,7 @@ def answer_query(g, question: str) -> dict:
     context = _gather_context(g, eq_key)
     top_person = _top_experience_person(g, eq_key)
 
-    llm_text = call_claude(SYSTEM_PROMPT, json.dumps({"question": question, "context": context}, indent=2), max_tokens=250)
+    llm_text = call_llm(SYSTEM_PROMPT, json.dumps({"question": question, "context": context}, indent=2), max_tokens=250)
     source = "llm"
     if llm_text is None:
         llm_text = _fallback_answer(context, question)

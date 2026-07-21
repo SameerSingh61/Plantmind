@@ -7,7 +7,7 @@ far more readily than generic prompts.
 import re
 from datetime import date
 
-from graph.llm import call_claude
+from graph.llm import call_llm
 
 SYSTEM_PROMPT = """You help capture operational knowledge before an experienced engineer
 retires. You will be given a work order completion note this person wrote
@@ -83,7 +83,7 @@ def generate_retirement_questions(g, orphaned_finding: dict) -> list[dict]:
         if not note or not _is_quotable(note):
             continue
 
-        llm_text = call_claude(
+        llm_text = call_llm(
             SYSTEM_PROMPT,
             f"Equipment: {equipment}\nWork order: {wo_id}\nCompletion note: \"{note}\"",
             max_tokens=100,

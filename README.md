@@ -30,7 +30,7 @@ tests/        acceptance_tests.py — the 10 acceptance tests from the build bri
 
 ```bash
 # Python deps (no venv in use here — adjust if your team wants one)
-pip install networkx fastapi uvicorn pydantic pyyaml pandas anthropic requests
+pip install networkx fastapi uvicorn pydantic pyyaml pandas openai requests
 
 # Frontend deps
 cd frontend && npm install && cd ..
@@ -80,10 +80,11 @@ Tests 5, 8, 9 need the backend running on `:8123`; everything else runs directly
 
 ## Environment variables
 
-- `ANTHROPIC_API_KEY` — optional. Without it, the briefing/query/retirement agents render from
+- `OPENAI_API_KEY` — optional. Without it, the briefing/query/retirement agents render from
   deterministic fallback templates instead of live model calls (see `graph/llm.py`). Every
   acceptance test and the demo script were verified to work without this key. Set it to see actual
-  generated prose instead of the templates.
+  generated prose instead of the templates. Model id is the single `MODEL` constant in
+  `graph/llm.py` (`gpt-4o` by default) — change it to whatever model your account has access to.
 - `VITE_API_BASE` — frontend env var pointing at the backend URL (see Run It above).
 
 ## Known scope decisions (stated plainly, not hidden)
