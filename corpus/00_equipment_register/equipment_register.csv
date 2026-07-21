@@ -1,0 +1,41 @@
+tag,name,type,unit,service,install_year,criticality,pid_ref
+P-101A,Crude charge pump A,centrifugal_pump,CDU,crude,2007,high,PID-CDU-001
+P-101B,Crude charge pump B,centrifugal_pump,CDU,crude,2007,high,PID-CDU-001
+P-102A,Desalted crude booster pump A,centrifugal_pump,CDU,crude,2007,medium,PID-CDU-001
+P-102B,Desalted crude booster pump B,centrifugal_pump,CDU,crude,2007,medium,PID-CDU-001
+D-101,Electrostatic desalter,desalter,CDU,crude/brine,2007,high,PID-CDU-001
+E-201,Crude/kerosene preheat exchanger,shell_tube_hx,CDU,crude/kerosene,2007,medium,PID-CDU-001
+E-202,Crude/diesel preheat exchanger,shell_tube_hx,CDU,crude/diesel,2007,medium,PID-CDU-001
+E-203,Crude/gas oil preheat exchanger,shell_tube_hx,CDU,crude/gas_oil,2007,medium,PID-CDU-001
+E-204,Preheat exchanger,shell_tube_hx,CDU,crude/naphtha,2011,medium,PID-CDU-002
+E-205,Crude/residue preheat exchanger,shell_tube_hx,CDU,crude/residue,2011,medium,PID-CDU-002
+E-206,Crude/vacuum residue preheat exchanger,shell_tube_hx,CDU,crude/vac_residue,2012,medium,PID-CDU-002
+E-207,Crude preheat train trim exchanger,shell_tube_hx,CDU,crude,2012,low,PID-CDU-002
+E-208,Crude preheat train final trim exchanger,shell_tube_hx,CDU,crude,2012,low,PID-CDU-002
+H-101,Crude charge heater,fired_heater,CDU,crude,2007,high,PID-CDU-002
+C-101,Atmospheric distillation column,distillation_column,CDU,crude,2007,high,PID-CDU-002
+P-103A,Naphtha draw pump A,centrifugal_pump,CDU,naphtha,2007,medium,PID-CDU-001
+P-103B,Naphtha draw pump B,centrifugal_pump,CDU,naphtha,2007,medium,PID-CDU-001
+P-104A,Kerosene draw pump A,centrifugal_pump,CDU,kerosene,2007,medium,PID-CDU-001
+P-104B,Kerosene draw pump B,centrifugal_pump,CDU,kerosene,2007,medium,PID-CDU-001
+P-105A,Diesel draw pump A,centrifugal_pump,CDU,diesel,2008,medium,PID-CDU-001
+P-105B,Diesel draw pump B,centrifugal_pump,CDU,diesel,2008,medium,PID-CDU-001
+P-106,Atmospheric residue pump,centrifugal_pump,CDU,atm_residue,2007,high,PID-CDU-001
+E-209,Naphtha/kerosene pumparound exchanger,shell_tube_hx,CDU,naphtha/kerosene,2009,low,PID-CDU-002
+E-210,Diesel pumparound exchanger,shell_tube_hx,CDU,diesel,2009,low,PID-CDU-002
+E-211,Gas oil pumparound exchanger,shell_tube_hx,CDU,gas_oil,2010,medium,PID-CDU-002
+A-101,Overhead air cooler,air_cooler,CDU,naphtha_vapor,2007,low,PID-CDU-002
+P-201,Reduced crude charge pump,centrifugal_pump,VDU,reduced_crude,2007,high,PID-CDU-002
+H-201,Vacuum heater,fired_heater,VDU,reduced_crude,2007,high,PID-CDU-002
+C-201,Vacuum distillation column,distillation_column,VDU,reduced_crude,2007,high,PID-CDU-002
+E-212,Vacuum gas oil cooler,shell_tube_hx,VDU,vgo,2007,low,PID-CDU-002
+P-202,Vacuum gas oil pump,centrifugal_pump,VDU,vgo,2007,medium,PID-CDU-002
+P-203,Vacuum residue pump,centrifugal_pump,VDU,vac_residue,2007,high,PID-CDU-002
+EJ-201,First stage vacuum ejector,ejector,VDU,vacuum_system,2007,medium,PID-CDU-002
+EJ-202,Second stage vacuum ejector,ejector,VDU,vacuum_system,2007,medium,PID-CDU-002
+H-301,Coker charge heater,fired_heater,DCU,vac_residue,2013,high,PID-DCU-001
+V-2301,Coker knockout drum,pressure_vessel,DCU,hydrocarbon_gas,2013,high,PID-DCU-001
+V-2302,Coke drum A,coke_drum,DCU,coke/vapor,2013,high,PID-DCU-001
+V-2303,Coke drum B,coke_drum,DCU,coke/vapor,2013,high,PID-DCU-001
+C-301,Coker main fractionator,distillation_column,DCU,coker_products,2013,high,PID-DCU-001
+P-301,Coker charge pump,centrifugal_pump,DCU,vac_residue,2013,high,PID-DCU-001

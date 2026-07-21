@@ -1,0 +1,160 @@
+{
+  "drawing_id": "PID-CDU-002",
+  "title": "CDU Preheat Train, Furnace, Atmospheric Column & VDU",
+  "equipment_tags": [
+    "E-204",
+    "E-205",
+    "E-206",
+    "E-207",
+    "E-208",
+    "H-101",
+    "C-101",
+    "E-209",
+    "E-210",
+    "E-211",
+    "A-101",
+    "P-201",
+    "H-201",
+    "C-201",
+    "E-212",
+    "P-202",
+    "P-203",
+    "EJ-201",
+    "EJ-202"
+  ],
+  "connections": [
+    {
+      "from": "E-204",
+      "to": "E-205",
+      "line_no": "4\"-CR-1040",
+      "service": "crude"
+    },
+    {
+      "from": "E-205",
+      "to": "E-206",
+      "line_no": "4\"-CR-1041",
+      "service": "crude"
+    },
+    {
+      "from": "E-206",
+      "to": "E-207",
+      "line_no": "4\"-CR-1042",
+      "service": "crude"
+    },
+    {
+      "from": "E-207",
+      "to": "E-208",
+      "line_no": "4\"-CR-1043",
+      "service": "crude"
+    },
+    {
+      "from": "E-208",
+      "to": "H-101",
+      "line_no": "4\"-CR-1044",
+      "service": "crude"
+    },
+    {
+      "from": "H-101",
+      "to": "C-101",
+      "line_no": "8\"-CR-1050",
+      "service": "crude_vapor"
+    },
+    {
+      "from": "C-101",
+      "to": "A-101",
+      "line_no": "6\"-NA-2000",
+      "service": "naphtha_vapor"
+    },
+    {
+      "from": "C-101",
+      "to": "E-209",
+      "line_no": "3\"-PA-2100",
+      "service": "naphtha/kerosene"
+    },
+    {
+      "from": "E-209",
+      "to": "C-101",
+      "line_no": "3\"-PA-2101",
+      "service": "naphtha/kerosene"
+    },
+    {
+      "from": "C-101",
+      "to": "E-210",
+      "line_no": "3\"-PA-2110",
+      "service": "diesel"
+    },
+    {
+      "from": "E-210",
+      "to": "C-101",
+      "line_no": "3\"-PA-2111",
+      "service": "diesel"
+    },
+    {
+      "from": "C-101",
+      "to": "E-211",
+      "line_no": "4\"-PA-2120",
+      "service": "gas_oil"
+    },
+    {
+      "from": "E-211",
+      "to": "C-101",
+      "line_no": "4\"-PA-2121",
+      "service": "gas_oil"
+    },
+    {
+      "from": "C-101",
+      "to": "P-201",
+      "line_no": "6\"-RC-3000",
+      "service": "reduced_crude"
+    },
+    {
+      "from": "P-201",
+      "to": "H-201",
+      "line_no": "6\"-RC-3001",
+      "service": "reduced_crude"
+    },
+    {
+      "from": "H-201",
+      "to": "C-201",
+      "line_no": "10\"-RC-3010",
+      "service": "reduced_crude"
+    },
+    {
+      "from": "C-201",
+      "to": "EJ-201",
+      "line_no": "8\"-VS-3020",
+      "service": "vacuum_system"
+    },
+    {
+      "from": "EJ-201",
+      "to": "EJ-202",
+      "line_no": "8\"-VS-3021",
+      "service": "vacuum_system"
+    },
+    {
+      "from": "C-201",
+      "to": "E-212",
+      "line_no": "4\"-VG-3030",
+      "service": "vgo"
+    },
+    {
+      "from": "E-212",
+      "to": "P-202",
+      "line_no": "4\"-VG-3031",
+      "service": "vgo"
+    },
+    {
+      "from": "C-201",
+      "to": "P-203",
+      "line_no": "6\"-VR-3040",
+      "service": "vac_residue"
+    },
+    {
+      "from": "P-203",
+      "to": "PID-DCU-001/P-301",
+      "line_no": "6\"-VR-3041",
+      "service": "vac_residue"
+    }
+  ],
+  "extraction_note": "Tag list and connectivity hand-verified against the source drawing; no live computer-vision pipeline runs at demo time."
+}

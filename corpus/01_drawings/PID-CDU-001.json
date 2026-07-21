@@ -1,0 +1,120 @@
+{
+  "drawing_id": "PID-CDU-001",
+  "title": "CDU Crude Charge, Desalting & Draw Pumps",
+  "equipment_tags": [
+    "P-101A",
+    "P-101B",
+    "P-102A",
+    "P-102B",
+    "D-101",
+    "E-201",
+    "E-202",
+    "E-203",
+    "P-103A",
+    "P-103B",
+    "P-104A",
+    "P-104B",
+    "P-105A",
+    "P-105B",
+    "P-106"
+  ],
+  "connections": [
+    {
+      "from": "P-101A",
+      "to": "D-101",
+      "line_no": "4\"-CR-1001",
+      "service": "crude"
+    },
+    {
+      "from": "P-101B",
+      "to": "D-101",
+      "line_no": "4\"-CR-1002",
+      "service": "crude"
+    },
+    {
+      "from": "D-101",
+      "to": "P-102A",
+      "line_no": "4\"-CR-1010",
+      "service": "crude"
+    },
+    {
+      "from": "D-101",
+      "to": "P-102B",
+      "line_no": "4\"-CR-1011",
+      "service": "crude"
+    },
+    {
+      "from": "P-102A",
+      "to": "E-201",
+      "line_no": "4\"-CR-1020",
+      "service": "crude"
+    },
+    {
+      "from": "P-102B",
+      "to": "E-201",
+      "line_no": "4\"-CR-1021",
+      "service": "crude"
+    },
+    {
+      "from": "E-201",
+      "to": "E-202",
+      "line_no": "4\"-CR-1030",
+      "service": "crude"
+    },
+    {
+      "from": "E-202",
+      "to": "E-203",
+      "line_no": "4\"-CR-1031",
+      "service": "crude"
+    },
+    {
+      "from": "E-203",
+      "to": "PID-CDU-002/E-204",
+      "line_no": "4\"-CR-1032",
+      "service": "crude"
+    },
+    {
+      "from": "C-101(PID-CDU-002)",
+      "to": "P-103A",
+      "line_no": "3\"-NA-2001",
+      "service": "naphtha"
+    },
+    {
+      "from": "C-101(PID-CDU-002)",
+      "to": "P-103B",
+      "line_no": "3\"-NA-2002",
+      "service": "naphtha"
+    },
+    {
+      "from": "C-101(PID-CDU-002)",
+      "to": "P-104A",
+      "line_no": "3\"-KE-2010",
+      "service": "kerosene"
+    },
+    {
+      "from": "C-101(PID-CDU-002)",
+      "to": "P-104B",
+      "line_no": "3\"-KE-2011",
+      "service": "kerosene"
+    },
+    {
+      "from": "C-101(PID-CDU-002)",
+      "to": "P-105A",
+      "line_no": "3\"-DI-2020",
+      "service": "diesel"
+    },
+    {
+      "from": "C-101(PID-CDU-002)",
+      "to": "P-105B",
+      "line_no": "3\"-DI-2021",
+      "service": "diesel"
+    },
+    {
+      "from": "C-101(PID-CDU-002)",
+      "to": "P-106",
+      "line_no": "6\"-AR-2030",
+      "service": "atm_residue"
+    }
+  ],
+  "extraction_note": "Tag list and connectivity hand-verified against the source drawing; no live computer-vision pipeline runs at demo time."
+}
