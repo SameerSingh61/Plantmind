@@ -1,0 +1,54 @@
+{
+  "drawing_id": "PID-DCU-001",
+  "title": "Delayed Coker Unit: Heater, Coke Drums & Fractionator",
+  "equipment_tags": [
+    "P-301",
+    "H-201",
+    "V-2301",
+    "V-2302",
+    "V-2303",
+    "C-301"
+  ],
+  "connections": [
+    {
+      "from": "P-301",
+      "to": "H-201",
+      "line_no": "6\"-VR-4001",
+      "service": null
+    },
+    {
+      "from": "H-201",
+      "to": "V-2302",
+      "line_no": "10\"-CK-4010",
+      "service": null
+    },
+    {
+      "from": "H-201",
+      "to": "V-2303",
+      "line_no": "10\"-CK-4011",
+      "service": null
+    },
+    {
+      "from": "H-201",
+      "to": "V-2301",
+      "line_no": "12\"-CV-4020",
+      "service": null
+    },
+    {
+      "from": "V-2301",
+      "to": "C-301",
+      "line_no": "12\"-CV-4030",
+      "service": null
+    },
+    {
+      "from": "H-201",
+      "to": "C-301",
+      "line_no": "12\"-CV-4021",
+      "service": null
+    }
+  ],
+  "cross_sheet_references": [],
+  "low_confidence_notes": [
+    "Line 12\"-CV-4020 and 12\"-CV-4030 overlap near V-2301"
+  ]
+}

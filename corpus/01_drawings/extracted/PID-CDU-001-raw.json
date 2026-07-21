@@ -1,0 +1,69 @@
+{
+  "drawing_id": "PID-CDU-001",
+  "title": "CDU Crude Charge, Desalting & Draw Pumps",
+  "equipment_tags": [
+    "P-101A",
+    "P-101B",
+    "P-102A",
+    "P-102B",
+    "D-101",
+    "E-201",
+    "E-202",
+    "E-203",
+    "P-103A",
+    "P-103B",
+    "P-104A",
+    "P-104B",
+    "P-105A",
+    "P-105B",
+    "P-106"
+  ],
+  "connections": [
+    {
+      "from": "P-101A",
+      "to": "D-101",
+      "line_no": "4\"-CR-1001",
+      "service": "crude"
+    },
+    {
+      "from": "P-101B",
+      "to": "D-101",
+      "line_no": "4\"-CR-1002",
+      "service": "crude"
+    },
+    {
+      "from": "D-101",
+      "to": "E-201",
+      "line_no": "4\"-CR-1010",
+      "service": "crude"
+    },
+    {
+      "from": "E-201",
+      "to": "P-102A",
+      "line_no": "4\"-CR-1020",
+      "service": "crude"
+    },
+    {
+      "from": "E-201",
+      "to": "P-102B",
+      "line_no": "4\"-CR-1021",
+      "service": "crude"
+    },
+    {
+      "from": "E-201",
+      "to": "E-202",
+      "line_no": "4\"-CR-1030",
+      "service": "crude"
+    },
+    {
+      "from": "E-202",
+      "to": "E-203",
+      "line_no": "4\"-CR-1031",
+      "service": "crude"
+    }
+  ],
+  "cross_sheet_references": [
+    "PID-CDU-002"
+  ],
+  "low_confidence_notes": []
+}

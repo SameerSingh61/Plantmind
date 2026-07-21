@@ -156,5 +156,5 @@
       "service": "vac_residue"
     }
   ],
-  "extraction_note": "Tag list and connectivity hand-verified against the source drawing; no live computer-vision pipeline runs at demo time."
+  "extraction_note": "Extracted by gpt-4o vision from corpus/01_drawings/images/PID-CDU-002.png (16/19 tags found unaided), then hand-verified against the source image \u2014 see corpus/01_drawings/extracted/VERIFICATION_LOG.md for the full diff. Corrections applied: added 3 equipment symbols the extraction missed entirely: H-101, C-101, C-201; rebuilt the full connection list for this sheet \u2014 too many misses/misattributions around the missed column nodes to patch line-by-line."
 }

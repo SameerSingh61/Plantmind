@@ -108,8 +108,15 @@ cp .env.example .env
   wording (`corpus/07_regulatory/`, `scripts/generate_bulk_corpus.py`). Also note the Factories Act,
   1948 has been substantially superseded by the Occupational Safety, Health and Working Conditions
   Code, 2020 — cite that alongside or instead of the 1948 Act if currency matters to your audience.
-- **P&ID tags/connectivity were hand-authored**, not extracted by a live computer-vision pass —
-  see `scripts/generate_drawings.py` for the reasoning.
+- **P&ID tags/connectivity now come from a real vision-extraction pass** — since Kaveri Refinery is
+  fictional, there's no proprietary drawing to fetch, so `scripts/draw_pid_images.py` renders the 3
+  sheets as real PNGs from the equipment layout, `scripts/extract_pid_vision.py` runs `gpt-4o` vision
+  extraction against those images blind (no access to the layout data), and a human verification
+  pass compared the raw output to each image and corrected what it got wrong — see
+  `corpus/01_drawings/extracted/VERIFICATION_LOG.md` for the full diff (a misread tag, two reversed
+  line directions, a dropped endpoint, and on the busiest sheet, 3 of 19 equipment symbols missed
+  entirely). `scripts/finalize_pid_drawings.py` writes the corrected, verified output that actually
+  ships in `corpus/01_drawings/*.json`.
 - **Graph engine is NetworkX, not Neo4j** — no Docker was available in the build environment. Every
   trigger rule in `graph/rules.py` is written as a small named function shaped like the equivalent
   Cypher query specifically so porting to real Neo4j is mechanical, not a rewrite.

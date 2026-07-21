@@ -1,0 +1,96 @@
+{
+  "drawing_id": "PID-CDU-002",
+  "title": "CDU Preheat Train, Furnace, Atmospheric Column & VDU",
+  "equipment_tags": [
+    "E-204",
+    "E-205",
+    "E-206",
+    "E-207",
+    "E-208",
+    "E-209",
+    "E-210",
+    "E-211",
+    "A-101",
+    "P-201",
+    "H-201",
+    "P-203",
+    "E-212",
+    "P-202",
+    "EJ-201",
+    "EJ-202"
+  ],
+  "connections": [
+    {
+      "from": "E-204",
+      "to": "E-206",
+      "line_no": "4\"-CR-1040",
+      "service": null
+    },
+    {
+      "from": "E-205",
+      "to": "E-206",
+      "line_no": "4\"-CR-1041",
+      "service": null
+    },
+    {
+      "from": "E-206",
+      "to": "E-207",
+      "line_no": "4\"-CR-1042",
+      "service": null
+    },
+    {
+      "from": "E-208",
+      "to": "H-201",
+      "line_no": "4\"-CR-1044",
+      "service": null
+    },
+    {
+      "from": "E-206",
+      "to": "E-209",
+      "line_no": null,
+      "service": null
+    },
+    {
+      "from": "E-210",
+      "to": "A-101",
+      "line_no": "6\"-RC-3001",
+      "service": null
+    },
+    {
+      "from": "H-201",
+      "to": "P-203",
+      "line_no": "10\"-RC-3010",
+      "service": null
+    },
+    {
+      "from": "P-203",
+      "to": "EJ-201",
+      "line_no": "8\"-VS-3021",
+      "service": null
+    },
+    {
+      "from": "EJ-201",
+      "to": "EJ-202",
+      "line_no": null,
+      "service": null
+    },
+    {
+      "from": "H-201",
+      "to": "E-212",
+      "line_no": "4\"-VG-3030",
+      "service": null
+    },
+    {
+      "from": "E-212",
+      "to": "P-202",
+      "line_no": "4\"-VG-3031",
+      "service": null
+    }
+  ],
+  "cross_sheet_references": [
+    "PID-CDU-001"
+  ],
+  "low_confidence_notes": [
+    "Multiple lines are close to each other, especially around E-209, making the exact path unclear."
+  ]
+}
