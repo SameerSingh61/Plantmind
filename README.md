@@ -10,7 +10,9 @@ architecture link below for the full reasoning.
 
 - Working prototype — this repo, run it with the steps below
 - [Architecture diagram](docs/architecture.md) — renders directly on GitHub, mermaid diagrams included
-- [Presentation deck](https://htmlpreview.github.io/?https://github.com/SameerSingh61/Plantmind/blob/main/docs/presentation-deck.html) — or open `docs/presentation-deck.html` locally in a browser
+- [Presentation deck](https://sameersingh61.github.io/Plantmind/presentation-deck.html) — requires
+  GitHub Pages enabled once (Settings → Pages → Source → Deploy from a branch → `main` → `/docs`);
+  until then, open `docs/presentation-deck.html` locally in a browser instead, which always works
 - [Demo video script](docs/demo-script.md) — the actual video still needs to be recorded by a human
   following this script; nothing here can do that.
 
