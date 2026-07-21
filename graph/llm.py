@@ -9,6 +9,12 @@ No live call may be a single point of failure for the demo.
 """
 import os
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 MODEL = "gpt-4o"
 
 _client = None

@@ -30,7 +30,7 @@ tests/        acceptance_tests.py — the 10 acceptance tests from the build bri
 
 ```bash
 # Python deps (no venv in use here — adjust if your team wants one)
-pip install networkx fastapi uvicorn pydantic pyyaml pandas openai requests
+pip install networkx fastapi uvicorn pydantic pyyaml pandas openai requests python-dotenv
 
 # Frontend deps
 cd frontend && npm install && cd ..
@@ -79,6 +79,16 @@ Tests 5, 8, 9 need the backend running on `:8123`; everything else runs directly
 `data/graph.pkl`. All 10 acceptance tests from the build brief pass as of this commit.
 
 ## Environment variables
+
+Copy `.env.example` to `.env` and fill in your key — `graph/llm.py` loads it automatically via
+`python-dotenv` (falls back to a real exported env var if `.env` isn't present or `python-dotenv`
+isn't installed). `.env` is gitignored and will never be committed; `.env.example` is the
+committed template.
+
+```bash
+cp .env.example .env
+# then edit .env and paste your key
+```
 
 - `OPENAI_API_KEY` — optional. Without it, the briefing/query/retirement agents render from
   deterministic fallback templates instead of live model calls (see `graph/llm.py`). Every
