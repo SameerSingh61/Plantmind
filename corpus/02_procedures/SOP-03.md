@@ -6,7 +6,7 @@ status: current
 revision: "Rev 3"
 revision_date: 2021-02-15
 governs_equipment: []
-satisfies_clauses: [OISD-192-2.1]
+satisfies_clauses: [OISD-105-GAS-TEST]
 source_page: 1
 ---
 

@@ -6,7 +6,7 @@ status: current
 revision: "Rev 2"
 revision_date: 2016-06-01
 governs_equipment: [C-101, C-201, C-301]
-satisfies_clauses: []
+satisfies_clauses: [OISD-105-GAS-TEST]
 source_page: 1
 ---
 

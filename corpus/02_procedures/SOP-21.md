@@ -6,7 +6,7 @@ status: current
 revision: "Rev 2"
 revision_date: 2018-01-01
 governs_equipment: []
-satisfies_clauses: []
+satisfies_clauses: [OISD-105-PERMIT-TYPES]
 source_page: 1
 ---
 

@@ -6,7 +6,7 @@ status: current
 revision: "Rev 3"
 revision_date: 2022-05-01
 governs_equipment: [V-2302, V-2303]
-satisfies_clauses: [OISD-192-2.1, OISD-192-3.6]
+satisfies_clauses: [OISD-105-GAS-TEST, OISD-106-RELIEF-SETTING]
 source_page: 1
 ---
 

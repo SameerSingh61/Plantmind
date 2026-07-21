@@ -6,7 +6,7 @@ status: current
 revision: "Rev 3"
 revision_date: 2018-04-01
 governs_equipment: []
-satisfies_clauses: [OISD-105-4.2]
+satisfies_clauses: [FA-1948-S41C]
 source_page: 1
 ---
 

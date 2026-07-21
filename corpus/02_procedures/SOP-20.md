@@ -6,7 +6,7 @@ status: current
 revision: "Rev 3"
 revision_date: 2019-01-01
 governs_equipment: []
-satisfies_clauses: []
+satisfies_clauses: [FA-1948-S87]
 source_page: 1
 ---
 

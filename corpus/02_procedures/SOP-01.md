@@ -6,7 +6,7 @@ status: current
 revision: "Rev 5"
 revision_date: 2020-01-10
 governs_equipment: []
-satisfies_clauses: [FA-1948-S7A]
+satisfies_clauses: [OISD-105-PERMIT-TYPES, FA-1948-S7A]
 source_page: 1
 ---
 

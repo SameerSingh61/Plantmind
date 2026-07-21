@@ -6,7 +6,7 @@ status: superseded
 revision: "Rev 2"
 revision_date: 2018-01-01
 governs_equipment: [V-2301]
-satisfies_clauses: [OISD-192-2.1]
+satisfies_clauses: [OISD-105-GAS-TEST]
 source_page: 1
 ---
 

@@ -6,7 +6,7 @@ status: current
 revision: "Rev 3"
 revision_date: 2017-05-12
 governs_equipment: [H-101]
-satisfies_clauses: [OISD-118-5.3]
+satisfies_clauses: [OISD-118-SEPARATION]
 source_page: 1
 ---
 

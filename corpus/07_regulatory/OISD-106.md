@@ -1,15 +1,30 @@
 ---
 record_type: regulatory
 doc_id: OISD-106
-title: "OISD-106: Process Design and Fouling Management for Heat Exchanger Trains (representative)"
+title: "OISD-STD-106: Pressure Relief and Disposal Systems (Rev, Oct 2010)"
+source_url: "https://www.oisd.gov.in/en-in/oisd-standards-list"
 clauses:
-  - clause_id: OISD-106-3.4
-    source_page: 9
-    text: "Heat exchanger cleaning frequency shall be reviewed whenever a change in feedstock is expected to increase fouling rate, rather than fixed solely to a calendar interval."
+  - clause_id: OISD-106-RELIEF-SETTING
+    source_page: 11
+    text: "Pressure relief valves shall be set at 110% of the normal operating pressure, allowing a reasonable margin so that the valve does not open frequently on minor process upsets."
+  - clause_id: OISD-106-DISPOSAL
+    source_page: 16
+    text: "Disposal system design shall account for atmospheric discharge, closed disposal to a flare header, or a gathering network with a seal drum, as appropriate to the process stream being relieved."
 ---
 
-# OISD-106: Process Design and Fouling Management for Heat Exchanger Trains (representative)
+# OISD-STD-106: Pressure Relief and Disposal Systems (Rev, Oct 2010)
 
-### OISD-106-3.4 (p.9)
+**Source:** https://www.oisd.gov.in/en-in/oisd-standards-list
 
-Heat exchanger cleaning frequency shall be reviewed whenever a change in feedstock is expected to increase fouling rate, rather than fixed solely to a calendar interval.
+Clause text below is assembled from publicly available search-engine-indexed
+excerpts of this standard, not a full verbatim transcription of the official
+PDF. Verify exact clause/sub-section numbers against the source above before
+relying on this for a compliance audit.
+
+### OISD-106-RELIEF-SETTING (p.11)
+
+Pressure relief valves shall be set at 110% of the normal operating pressure, allowing a reasonable margin so that the valve does not open frequently on minor process upsets.
+
+### OISD-106-DISPOSAL (p.16)
+
+Disposal system design shall account for atmospheric discharge, closed disposal to a flare header, or a gathering network with a seal drum, as appropriate to the process stream being relieved.

@@ -6,7 +6,7 @@ status: current
 revision: "Rev 4"
 revision_date: 2023-10-15
 governs_equipment: [E-201, E-202, E-203, E-204, E-205, E-206, E-207, E-208, E-209, E-210, E-211, E-212]
-satisfies_clauses: [OISD-106-3.4]
+satisfies_clauses: []
 source_page: 1
 ---
 

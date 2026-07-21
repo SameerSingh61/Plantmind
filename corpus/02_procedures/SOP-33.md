@@ -6,7 +6,7 @@ status: current
 revision: "Rev 3"
 revision_date: 2015-03-01
 governs_equipment: [P-101A, P-101B, P-102A, P-102B]
-satisfies_clauses: [OISD-105-4.2]
+satisfies_clauses: [FA-1948-S41C]
 source_page: 1
 ---
 

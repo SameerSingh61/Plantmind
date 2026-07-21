@@ -6,7 +6,7 @@ status: current
 revision: "Rev 4"
 revision_date: 2019-06-01
 governs_equipment: []
-satisfies_clauses: [OISD-105-6.1]
+satisfies_clauses: [OISD-105-PERMIT-TYPES, OISD-116-HYDRANT-SPACING]
 source_page: 1
 ---
 

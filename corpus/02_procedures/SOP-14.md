@@ -6,7 +6,7 @@ status: current
 revision: "Rev 3"
 revision_date: 2019-09-01
 governs_equipment: [V-2302, V-2303]
-satisfies_clauses: [OISD-226-4.5]
+satisfies_clauses: [OISD-106-DISPOSAL, OISD-105-GAS-TEST]
 source_page: 1
 ---
 

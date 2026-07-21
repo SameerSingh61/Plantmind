@@ -6,7 +6,7 @@ status: current
 revision: "Rev 2"
 revision_date: 2017-01-01
 governs_equipment: [V-2302, V-2303]
-satisfies_clauses: [OISD-192-2.1]
+satisfies_clauses: [OISD-106-RELIEF-SETTING]
 source_page: 1
 ---
 

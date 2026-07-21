@@ -92,46 +92,75 @@ def rand_failure_mode(tag: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# REGULATORY — 6 documents. Representative content inspired by publicly
-# known OISD/Factory Act/PESO topic areas, NOT verbatim reproductions of the
-# real standards (no network fetch was used to source the actual PDFs).
-# Swap in real downloaded standards before an actual submission if exact
-# clause text needs to hold up under judge scrutiny.
+# REGULATORY — 5 documents, correctly numbered and topically real this time.
+#
+# An earlier version of this file used fabricated standard numbers that
+# didn't match reality (e.g. "OISD-105: Fire Protection" — the real OISD-105
+# is Work Permit System; the real fire-protection standard is OISD-116).
+# This version was corrected against actual web research: the doc_id/title
+# pairs below are real, currently-published OISD standards and real
+# Factories Act, 1948 sections, and the clause text is assembled from
+# publicly available search-engine-indexed excerpts of each standard
+# (permit types, gas-testing prerequisites, relief-valve setpoints, hydrant
+# spacing figures, statutory section text) — not a full verbatim
+# transcription of the official PDF, since it could not be fetched directly
+# in this environment (connection blocked). Verify exact clause/sub-section
+# numbers against the official PDF at
+# https://www.oisd.gov.in/en-in/oisd-standards-list before relying on this
+# for a compliance audit.
+#
+# Also note: the Factories Act, 1948 has since been substantially
+# superseded by the Occupational Safety, Health and Working Conditions
+# Code, 2020 — cite the 2020 Code alongside or instead of the 1948 Act if
+# currency matters for your audience.
+#
+# OISD-192 (Safety Practice during Construction) and OISD-226 (natural gas
+# pipeline / city gas distribution safety) were dropped entirely — neither
+# is topically relevant to a CDU/VDU/DCU refinery, and confined-space entry
+# (which OISD-192 was wrongly used for) is actually governed by OISD-105.
 # ---------------------------------------------------------------------------
 REGULATORY_DOCS = [
-    dict(doc_id="OISD-105", title="OISD-105: Fire Protection Facilities for Petroleum Refineries and Oil/Gas Processing Plants (representative)",
+    dict(doc_id="OISD-105", title="OISD-STD-105: Work Permit System (Rev I, Sept 2004)",
+         source="https://www.oisd.gov.in/en-in/oisd-standards-list",
          clauses=[
-             dict(clause_id="OISD-105-4.2", page=12,
-                  text="Positive isolation and verification of flush/cooling flow shall be confirmed before startup of rotating equipment handling flammable hydrocarbons."),
-             dict(clause_id="OISD-105-6.1", page=18,
-                  text="Fixed fire detection shall be provided in areas handling Class A/B petroleum products above defined inventory thresholds."),
+             dict(clause_id="OISD-105-PERMIT-TYPES", page=3,
+                  text="Four types of work permit are prescribed — cold work, hot work, confined space entry, and electrical isolation/energization — each with its own permit format. A Confined Space Entry Permit shall be supplemented with a hot or cold work permit as per the nature of the work to be carried out."),
+             dict(clause_id="OISD-105-GAS-TEST", page=5,
+                  text="No person shall be permitted to enter a confined space — vessel, boiler, storage tank, or large-diameter piping — until gas testing for hydrocarbon content, oxygen deficiency, and toxic gases has been carried out and an entry permit issued in writing based on that testing."),
+             dict(clause_id="OISD-105-COPIES", page=4,
+                  text="The work permit shall be prepared in a minimum of three copies: the original, issued to the receiver; a duplicate, retained by the Fire & Safety Section; and a triplicate, retained in the permit book."),
          ]),
-    dict(doc_id="OISD-106", title="OISD-106: Process Design and Fouling Management for Heat Exchanger Trains (representative)",
+    dict(doc_id="OISD-106", title="OISD-STD-106: Pressure Relief and Disposal Systems (Rev, Oct 2010)",
+         source="https://www.oisd.gov.in/en-in/oisd-standards-list",
          clauses=[
-             dict(clause_id="OISD-106-3.4", page=9,
-                  text="Heat exchanger cleaning frequency shall be reviewed whenever a change in feedstock is expected to increase fouling rate, rather than fixed solely to a calendar interval."),
+             dict(clause_id="OISD-106-RELIEF-SETTING", page=11,
+                  text="Pressure relief valves shall be set at 110% of the normal operating pressure, allowing a reasonable margin so that the valve does not open frequently on minor process upsets."),
+             dict(clause_id="OISD-106-DISPOSAL", page=16,
+                  text="Disposal system design shall account for atmospheric discharge, closed disposal to a flare header, or a gathering network with a seal drum, as appropriate to the process stream being relieved."),
          ]),
-    dict(doc_id="OISD-118", title="OISD-118: Layouts for Oil and Gas Installations (representative)",
+    dict(doc_id="OISD-116", title="OISD-STD-116: Fire Protection Facilities for Petroleum Refineries and Oil/Gas Processing Plants",
+         source="https://www.oisd.gov.in/public/assets/filemanager/1742541199_e2b8de065ca3061addb4.pdf",
          clauses=[
-             dict(clause_id="OISD-118-5.3", page=21,
-                  text="Minimum spacing shall be maintained between fired equipment and pressure vessels containing hydrocarbon inventory."),
+             dict(clause_id="OISD-116-HYDRANT-SPACING", page=22,
+                  text="In high hazard areas, at least one hydrant post shall be provided for every 30 metres of external wall measurement or unit battery limit perimeter; hydrants protecting utilities and miscellaneous buildings in high hazard areas may be spaced at 45 metre intervals."),
+             dict(clause_id="OISD-116-HYDRANT-DISTANCE", page=23,
+                  text="Hydrants shall be located at a minimum distance of 15 metres from the periphery of the storage tank or hazardous equipment under protection, with horizontal hose-connection coverage not considered beyond 45 metres."),
          ]),
-    dict(doc_id="OISD-192", title="OISD-192: Confined Space Entry and Vessel Isolation (representative)",
+    dict(doc_id="OISD-118", title="OISD-STD-118: Layouts for Oil and Gas Installations (Rev III, June 2025)",
+         source="https://www.oisd.gov.in/public/assets/upload/SurakshaSamvad/1765366309_c3108480d7d96c44e44e.pdf",
          clauses=[
-             dict(clause_id="OISD-192-2.1", page=4,
-                  text="Vessel entry shall not proceed until isolation, purging, and atmosphere testing are independently verified and logged."),
-             dict(clause_id="OISD-192-3.6", page=7,
-                  text="Level and pressure instrumentation bridles on hydrocarbon-service vessels shall be maintained free of blockage; any recurring fouling behaviour shall be documented in the equipment's governing procedure, not left to informal practice."),
+             dict(clause_id="OISD-118-SEPARATION", page=9,
+                  text="Minimum separation distances shall be maintained between process units, storage tanks, LPG facilities, and fired equipment within the plant boundary, per the layout philosophy for the relevant sector of the oil and gas industry."),
          ]),
-    dict(doc_id="OISD-226", title="OISD-226: Delayed Coking Unit Safety Requirements (representative)",
+    dict(doc_id="FACTORIES-ACT-EXTRACT", title="Factories Act, 1948 — Sections relevant to process safety management",
+         source="https://www.indiacode.nic.in/handle/123456789/1530",
          clauses=[
-             dict(clause_id="OISD-226-4.5", page=14,
-                  text="Coke drum switching and decoking sequences shall follow a documented, equipment-specific procedure accounting for thermal cycling and coke buildup."),
-         ]),
-    dict(doc_id="FACTORIES-ACT-EXTRACT", title="Factories Act 1948, Sections relevant to Process Safety Management (representative extract)",
-         clauses=[
-             dict(clause_id="FA-1948-S7A", page=3,
-                  text="The occupier of a factory shall ensure, so far as reasonably practicable, the health and safety of workers, including maintenance of plant and systems of work."),
+             dict(clause_id="FA-1948-S7A", page=1,
+                  text="Every occupier shall ensure, so far as is reasonably practicable, the health, safety and welfare of all workers while they are at work in the factory, and shall prepare and revise a written statement of general policy with respect to health and safety."),
+             dict(clause_id="FA-1948-S41C", page=1,
+                  text="The occupier of a factory involving a hazardous process shall maintain accurate health records of workers exposed to it, appoint qualified persons to supervise the handling of hazardous substances, and arrange medical examinations before, during, and after exposure."),
+             dict(clause_id="FA-1948-S87", page=1,
+                  text="The State Government may, by rules, declare a manufacturing process carried on in any specified class of factories to be a dangerous operation, and may make rules imposing further safety and health requirements on it."),
          ]),
 ]
 
@@ -150,11 +179,19 @@ def write_regulatory():
 record_type: regulatory
 doc_id: {doc['doc_id']}
 title: "{doc['title']}"
+source_url: "{doc['source']}"
 clauses:
 {clause_block}
 ---
 
 # {doc['title']}
+
+**Source:** {doc['source']}
+
+Clause text below is assembled from publicly available search-engine-indexed
+excerpts of this standard, not a full verbatim transcription of the official
+PDF. Verify exact clause/sub-section numbers against the source above before
+relying on this for a compliance audit.
 
 {body_block}
 """)
@@ -173,25 +210,28 @@ COLUMN_TAGS = TAG_BY_TYPE.get("distillation_column", [])
 
 PROCEDURES = [
     dict(pid="SOP-01", title="General Permit to Work Procedure", governs=[],
-         rev="Rev 5", rev_date="2020-01-10", satisfies=["FA-1948-S7A"]),
+         rev="Rev 5", rev_date="2020-01-10", satisfies=["OISD-105-PERMIT-TYPES", "FA-1948-S7A"]),
     dict(pid="SOP-02", title="Hot Work Permit Procedure", governs=[],
-         rev="Rev 4", rev_date="2019-06-01", satisfies=["OISD-105-6.1"]),
+         rev="Rev 4", rev_date="2019-06-01", satisfies=["OISD-105-PERMIT-TYPES", "OISD-116-HYDRANT-SPACING"]),
     dict(pid="SOP-03", title="Confined Space Entry - General Requirements", governs=[],
-         rev="Rev 3", rev_date="2021-02-15", satisfies=["OISD-192-2.1"]),
+         rev="Rev 3", rev_date="2021-02-15", satisfies=["OISD-105-GAS-TEST"]),
     dict(pid="SOP-04", title="Lockout-Tagout Procedure", governs=[],
          rev="Rev 4", rev_date="2020-08-20", satisfies=["FA-1948-S7A"]),
     dict(pid="SOP-05", title="General Unit Startup Sequencing", governs=[],
-         rev="Rev 3", rev_date="2018-04-01", satisfies=["OISD-105-4.2"]),
+         rev="Rev 3", rev_date="2018-04-01", satisfies=["FA-1948-S41C"]),
     dict(pid="SOP-06", title="General Unit Shutdown Sequencing", governs=[],
          rev="Rev 3", rev_date="2018-04-01", satisfies=[]),
     dict(pid="SOP-07", title="Desalter Operation Procedure", governs=["D-101"],
-         rev="Rev 2", rev_date="2016-09-01", satisfies=["OISD-105-4.2"]),
+         rev="Rev 2", rev_date="2016-09-01", satisfies=["FA-1948-S41C"]),
+    # No OISD standard specifically covers thermal/fouling performance —
+    # that's engineering practice, not a regulatory requirement, so this
+    # one deliberately satisfies no clause rather than force a mismatch.
     dict(pid="SOP-08", title="Exchanger Cleaning and Fouling Management", governs=HX_TAGS,
-         rev="Rev 4", rev_date="2023-10-15", satisfies=["OISD-106-3.4"]),
+         rev="Rev 4", rev_date="2023-10-15", satisfies=[]),
     dict(pid="SOP-09", title="Atmospheric Furnace Operation (H-101)", governs=["H-101"],
-         rev="Rev 3", rev_date="2017-05-12", satisfies=["OISD-118-5.3"]),
+         rev="Rev 3", rev_date="2017-05-12", satisfies=["OISD-118-SEPARATION"]),
     dict(pid="SOP-10", title="Vacuum Column and Ejector System Operation", governs=["C-201", "H-201", "EJ-201", "EJ-202", "E-212", "P-201", "P-202", "P-203"],
-         rev="Rev 2", rev_date="2015-11-01", satisfies=["OISD-118-5.3"]),
+         rev="Rev 2", rev_date="2015-11-01", satisfies=["OISD-118-SEPARATION"]),
     dict(pid="SOP-11", title="Vacuum Ejector Maintenance Procedure", governs=["EJ-201", "EJ-202"],
          rev="Rev 2", rev_date="2016-03-01", satisfies=[]),
     # Note: V-2301 (the only pressure_vessel-type tag) is deliberately
@@ -200,29 +240,29 @@ PROCEDURES = [
     # documented fact about V-2301 lives in work order notes, not in any
     # current procedure. Do not add VESSEL_TAGS here.
     dict(pid="SOP-12", title="Vessel Confined Space Isolation Procedure", governs=COKE_DRUM_TAGS,
-         rev="Rev 3", rev_date="2022-05-01", satisfies=["OISD-192-2.1", "OISD-192-3.6"]),
+         rev="Rev 3", rev_date="2022-05-01", satisfies=["OISD-105-GAS-TEST", "OISD-106-RELIEF-SETTING"]),
     dict(pid="SOP-13", title="Coker Charge Heater Operation (H-301)", governs=["H-301"],
-         rev="Rev 2", rev_date="2014-02-01", satisfies=["OISD-118-5.3"]),
+         rev="Rev 2", rev_date="2014-02-01", satisfies=["OISD-118-SEPARATION"]),
     dict(pid="SOP-14", title="Coke Drum Switching and Decoking Procedure", governs=COKE_DRUM_TAGS,
-         rev="Rev 3", rev_date="2019-09-01", satisfies=["OISD-226-4.5"]),
+         rev="Rev 3", rev_date="2019-09-01", satisfies=["OISD-106-DISPOSAL", "OISD-105-GAS-TEST"]),
     dict(pid="SOP-15", title="Coker Main Fractionator Operation", governs=["C-301"],
          rev="Rev 2", rev_date="2014-02-01", satisfies=[]),
     dict(pid="SOP-16", title="Air Cooler Maintenance Procedure", governs=["A-101"],
          rev="Rev 2", rev_date="2015-07-01", satisfies=[]),
     dict(pid="SOP-17", title="Centrifugal Pump Maintenance - General", governs=PUMP_TAGS,
-         rev="Rev 4", rev_date="2021-03-01", satisfies=["OISD-105-4.2"]),
+         rev="Rev 4", rev_date="2021-03-01", satisfies=["FA-1948-S41C"]),
     dict(pid="SOP-18", title="Pressure Vessel Inspection Preparation", governs=COKE_DRUM_TAGS,
-         rev="Rev 2", rev_date="2017-01-01", satisfies=["OISD-192-2.1"]),
+         rev="Rev 2", rev_date="2017-01-01", satisfies=["OISD-106-RELIEF-SETTING"]),
     dict(pid="SOP-19", title="Distillation Column Internals Inspection", governs=COLUMN_TAGS,
-         rev="Rev 2", rev_date="2016-06-01", satisfies=[]),
+         rev="Rev 2", rev_date="2016-06-01", satisfies=["OISD-105-GAS-TEST"]),
     dict(pid="SOP-20", title="Emergency Shutdown Procedure", governs=[],
-         rev="Rev 3", rev_date="2019-01-01", satisfies=[]),
+         rev="Rev 3", rev_date="2019-01-01", satisfies=["FA-1948-S87"]),
     dict(pid="SOP-21", title="Sample Point Safety Procedure", governs=[],
-         rev="Rev 2", rev_date="2018-01-01", satisfies=[]),
+         rev="Rev 2", rev_date="2018-01-01", satisfies=["OISD-105-PERMIT-TYPES"]),
     # SOP-33: deliberately last revised in 2015, before INC-2019-04 — this is
     # the gap the unclosed_recommendation rule is built to find.
     dict(pid="SOP-33", title="Crude Pump Startup Procedure", governs=["P-101A", "P-101B", "P-102A", "P-102B"],
-         rev="Rev 3", rev_date="2015-03-01", satisfies=["OISD-105-4.2"]),
+         rev="Rev 3", rev_date="2015-03-01", satisfies=["FA-1948-S41C"]),
 ]
 
 # Messiness: a superseded Rev 2 of SOP-12 still sits in the folder alongside
@@ -231,7 +271,7 @@ PROCEDURES = [
 SOP_12_SUPERSEDED = dict(
     pid="SOP-12", title="Vessel Confined Space Isolation Procedure",
     governs=["V-2301"], rev="Rev 2", rev_date="2018-01-01",
-    satisfies=["OISD-192-2.1"],
+    satisfies=["OISD-105-GAS-TEST"],
 )
 
 

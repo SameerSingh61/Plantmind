@@ -6,7 +6,7 @@ status: current
 revision: "Rev 2"
 revision_date: 2015-11-01
 governs_equipment: [C-201, H-201, EJ-201, EJ-202, E-212, P-201, P-202, P-203]
-satisfies_clauses: [OISD-118-5.3]
+satisfies_clauses: [OISD-118-SEPARATION]
 source_page: 1
 ---
 

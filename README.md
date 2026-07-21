@@ -88,9 +88,15 @@ Tests 5, 8, 9 need the backend running on `:8123`; everything else runs directly
 
 ## Known scope decisions (stated plainly, not hidden)
 
-- **Regulatory clause text is representative**, not the verbatim OISD/Factory Act PDFs — no network
-  fetch was used to source the real standards. Swap in real downloaded PDFs before a compliance
-  audit relies on exact clause wording (`corpus/07_regulatory/`, `scripts/generate_bulk_corpus.py`).
+- **Regulatory docs are now correctly numbered and topically real** (OISD-105 Work Permit System,
+  OISD-106 Pressure Relief & Disposal Systems, OISD-116 Fire Protection, OISD-118 Layouts, Factories
+  Act 1948 §7A/§41C/§87), assembled from publicly available search-engine-indexed excerpts of each
+  standard — not a full verbatim transcription of the official PDF, since it couldn't be fetched
+  directly in this environment. Verify exact clause/sub-section numbers against
+  https://www.oisd.gov.in/en-in/oisd-standards-list before a compliance audit relies on exact
+  wording (`corpus/07_regulatory/`, `scripts/generate_bulk_corpus.py`). Also note the Factories Act,
+  1948 has been substantially superseded by the Occupational Safety, Health and Working Conditions
+  Code, 2020 — cite that alongside or instead of the 1948 Act if currency matters to your audience.
 - **P&ID tags/connectivity were hand-authored**, not extracted by a live computer-vision pass —
   see `scripts/generate_drawings.py` for the reasoning.
 - **Graph engine is NetworkX, not Neo4j** — no Docker was available in the build environment. Every
