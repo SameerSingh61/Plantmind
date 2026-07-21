@@ -2,12 +2,16 @@
 citation; when the graph doesn't cover what was asked, the system says so
 and names the person with the most direct experience on the equipment in
 question — it never improvises. See THE QUERY SURFACE in the build brief.
+
+Backed by AuraDB (Neo4j) — every lookup here is a real Cypher query.
 """
 import json
 import re
 import time
 
 from graph.llm import call_llm
+from graph.neo4j_client import run
+from graph.normalizer import TagNormalizer
 
 SYSTEM_PROMPT = """You are the grounded query layer for Kaveri Refinery Unit 3's knowledge graph.
 
@@ -46,67 +50,77 @@ UNANSWERABLE_KEYWORDS = [
 ]
 
 
-def _top_experience_person(g, eq_key: str) -> dict | None:
-    best = None
-    for u, v, d in g.in_edges(eq_key, data=True):
-        if d.get("edge_type") != "HAS_EXPERIENCE_WITH":
-            continue
-        count = d.get("work_order_count", 0)
-        if best is None or count > best[1]:
-            best = (u, count)
-    if best is None:
-        return None
-    person_attrs = g.nodes[best[0]]
-    return {"name": person_attrs.get("name"), "id": person_attrs.get("id"),
-            "role": person_attrs.get("role"), "work_order_count": best[1]}
+def _top_experience_person(eq_key: str) -> dict | None:
+    rows = run(
+        "MATCH (eq:Equipment {key: $eq_key})<-[hew:HAS_EXPERIENCE_WITH]-(p:Person) "
+        "RETURN p.name AS name, p.id AS id, p.role AS role, hew.work_order_count AS work_order_count "
+        "ORDER BY hew.work_order_count DESC LIMIT 1",
+        eq_key=eq_key,
+    )
+    return rows[0] if rows else None
 
 
-def _identify_equipment(g, question: str) -> list[str]:
-    from graph.normalizer import TagNormalizer
-    tags = [attrs["id"] for _, attrs in g.nodes(data=True) if attrs.get("node_type") == "Equipment"]
+def _identify_equipment(question: str) -> list[str]:
+    tags = [r["tag"] for r in run("MATCH (e:Equipment) RETURN e.id AS tag")]
     normalizer = TagNormalizer(tags)
     found = normalizer.extract_tags_from_body(question)
     return [f"Equipment:{t}" for t in found]
 
 
-def _gather_context(g, eq_key: str) -> dict:
-    eq = dict(g.nodes[eq_key])
-    incidents, near_misses, procedures, work_orders = [], [], [], []
+def _gather_context(eq_key: str) -> dict:
+    eq_rows = run(
+        "MATCH (eq:Equipment {key: $eq_key}) "
+        "RETURN eq.id AS tag, eq.name AS name, eq.type AS type, eq.unit AS unit, eq.criticality AS criticality",
+        eq_key=eq_key,
+    )
+    eq = eq_rows[0]
 
-    for u, v, d in g.in_edges(eq_key, data=True):
-        if d.get("edge_type") == "INVOLVED":
-            inc = dict(g.nodes[u])
-            fm = [g.nodes[vv]["id"] for _, vv, dd in g.out_edges(u, data=True) if dd.get("edge_type") == "EXHIBITED"]
-            entry = {
-                "id": inc.get("id"), "date": inc.get("date"),
-                "failure_mode": fm[0] if fm else None,
-                "source": {"doc": inc.get("source_document"), "page": inc.get("page")},
-            }
-            (incidents if inc.get("classification") == "incident" else near_misses).append(entry)
-        elif d.get("edge_type") == "GOVERNS":
-            proc = dict(g.nodes[u])
-            procedures.append({
-                "id": proc.get("id"), "title": proc.get("title"), "revision": proc.get("revision"),
-                "revision_date": proc.get("revision_date"),
-                "source": {"doc": proc.get("source_document"), "page": proc.get("page")},
-            })
-        elif d.get("edge_type") == "PERFORMED_ON":
-            wo = dict(g.nodes[u])
-            work_orders.append({
-                "id": wo.get("id"), "date": wo.get("raised_date"), "work_type": wo.get("work_type"),
-                "notes": wo.get("completion_notes"),
-                "source": {"doc": wo.get("source_document"), "page": wo.get("page")},
-            })
+    incident_rows = run(
+        "MATCH (eq:Equipment {key: $eq_key})<-[:INVOLVED]-(inc:Incident) "
+        "OPTIONAL MATCH (inc)-[:EXHIBITED]->(fm:FailureMode) "
+        "RETURN inc.id AS id, inc.date AS date, inc.classification AS classification, "
+        "       fm.id AS failure_mode, inc.source_document AS doc, inc.page AS page",
+        eq_key=eq_key,
+    )
+    incidents, near_misses = [], []
+    for r in incident_rows:
+        entry = {
+            "id": r["id"], "date": r["date"], "failure_mode": r["failure_mode"],
+            "source": {"doc": r["doc"], "page": r["page"]},
+        }
+        (incidents if r["classification"] == "incident" else near_misses).append(entry)
 
-    work_orders.sort(key=lambda w: w["date"] or "", reverse=True)
+    procedures = run(
+        "MATCH (eq:Equipment {key: $eq_key})<-[:GOVERNS]-(proc:Procedure) "
+        "RETURN proc.id AS id, proc.title AS title, proc.revision AS revision, "
+        "       proc.revision_date AS revision_date, proc.source_document AS doc, proc.page AS page",
+        eq_key=eq_key,
+    )
+
+    work_orders = run(
+        "MATCH (eq:Equipment {key: $eq_key})<-[:PERFORMED_ON]-(wo:WorkOrder) "
+        "RETURN wo.id AS id, wo.raised_date AS date, wo.work_type AS work_type, "
+        "       wo.completion_notes AS notes, wo.source_document AS doc, wo.page AS page "
+        "ORDER BY wo.raised_date DESC LIMIT 8",
+        eq_key=eq_key,
+    )
+
     return {
-        "equipment": {"tag": eq.get("id"), "name": eq.get("name"), "type": eq.get("type"),
-                      "unit": eq.get("unit"), "criticality": eq.get("criticality"),
+        "equipment": {"tag": eq["tag"], "name": eq["name"], "type": eq["type"],
+                      "unit": eq["unit"], "criticality": eq["criticality"],
                       "source": {"doc": "equipment_register.csv", "page": 1}},
         "incidents": incidents,
         "near_misses": near_misses,
-        "procedures_governing": procedures,
-        "recent_work_orders": work_orders[:8],
+        "procedures_governing": [
+            {"id": p["id"], "title": p["title"], "revision": p["revision"],
+             "revision_date": p["revision_date"], "source": {"doc": p["doc"], "page": p["page"]}}
+            for p in procedures
+        ],
+        "recent_work_orders": [
+            {"id": w["id"], "date": w["date"], "work_type": w["work_type"], "notes": w["notes"],
+             "source": {"doc": w["doc"], "page": w["page"]}}
+            for w in work_orders
+        ],
     }
 
 
@@ -124,7 +138,7 @@ def _fallback_answer(context: dict, question: str) -> str:
         p = context["procedures_governing"][0]
         lines.append(f"It is governed by {p['id']} ({p['title']}, {p['revision']}) [{p['source']['doc']}, p.{p['source']['page']}].")
     elif context["recent_work_orders"]:
-        lines.append(f"No current procedure governs this equipment [graph:GOVERNS-check].")
+        lines.append("No current procedure governs this equipment [graph:GOVERNS-check].")
     if context["recent_work_orders"]:
         w = context["recent_work_orders"][0]
         lines.append(f"Most recent work order: {w['id']} ({w['date']}) [{w['source']['doc']}, p.{w['source']['page']}].")
@@ -133,9 +147,9 @@ def _fallback_answer(context: dict, question: str) -> str:
     return " ".join(lines)
 
 
-def answer_query(g, question: str) -> dict:
+def answer_query(question: str) -> dict:
     start = time.time()
-    eq_keys = _identify_equipment(g, question)
+    eq_keys = _identify_equipment(question)
 
     if not eq_keys:
         elapsed_ms = int((time.time() - start) * 1000)
@@ -148,8 +162,8 @@ def answer_query(g, question: str) -> dict:
         }
 
     eq_key = eq_keys[0]
-    context = _gather_context(g, eq_key)
-    top_person = _top_experience_person(g, eq_key)
+    context = _gather_context(eq_key)
+    top_person = _top_experience_person(eq_key)
 
     llm_text = call_llm(SYSTEM_PROMPT, json.dumps({"question": question, "context": context}, indent=2), max_tokens=250)
     source = "llm"

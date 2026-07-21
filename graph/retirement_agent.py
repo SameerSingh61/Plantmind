@@ -3,11 +3,14 @@ agent: it generates questions, not summaries, and every question must
 quote the retiring person's own words from a specific work order they
 signed — people answer questions grounded in what they themselves wrote
 far more readily than generic prompts.
+
+Backed by AuraDB (Neo4j).
 """
 import re
 from datetime import date
 
 from graph.llm import call_llm
+from graph.neo4j_client import run
 
 SYSTEM_PROMPT = """You help capture operational knowledge before an experienced engineer
 retires. You will be given a work order completion note this person wrote
@@ -65,23 +68,24 @@ def _fallback_question(wo_id: str, equipment: str, note: str) -> str:
     return f'You signed {wo_id} on {equipment} with the note "{quote}" — what was the practice, and under what conditions is it needed?'
 
 
-def generate_retirement_questions(g, orphaned_finding: dict) -> list[dict]:
+def generate_retirement_questions(orphaned_finding: dict) -> list[dict]:
     """orphaned_finding is one item from rule_orphaned_knowledge()."""
     equipment = orphaned_finding["equipment"]
     author_id = orphaned_finding["primary_author_id"]
     questions = []
 
-    for wo_id in orphaned_finding["work_orders"]:
-        wo_key = f"WorkOrder:{wo_id}"
-        if wo_key not in g:
-            continue
-        wo = g.nodes[wo_key]
-        assignees = [v for _, v, d in g.out_edges(wo_key, data=True) if d.get("edge_type") == "ASSIGNED_TO"]
-        if not any(g.nodes[a].get("id") == author_id for a in assignees):
-            continue
-        note = wo.get("completion_notes")
+    rows = run(
+        "MATCH (wo:WorkOrder)-[:ASSIGNED_TO]->(p:Person {id: $author_id}) "
+        "WHERE wo.id IN $wo_ids "
+        "RETURN wo.id AS wo_id, wo.completion_notes AS note",
+        author_id=author_id, wo_ids=orphaned_finding["work_orders"],
+    )
+
+    for row in rows:
+        note = row["note"]
         if not note or not _is_quotable(note):
             continue
+        wo_id = row["wo_id"]
 
         llm_text = call_llm(
             SYSTEM_PROMPT,
@@ -100,27 +104,30 @@ def generate_retirement_questions(g, orphaned_finding: dict) -> list[dict]:
     return questions
 
 
-def record_interview_answer(builder_graph, person_id: str, equipment_tag: str,
+def record_interview_answer(person_id: str, equipment_tag: str,
                               answer_text: str, wo_id: str, interview_date: str | None = None) -> str:
     """Writes the retiring engineer's answer back into the graph as a new
     Procedure node with a GOVERNS edge to the equipment — closing exactly
     the kind of gap the orphaned_knowledge rule was built to find. Returns
     the new node key."""
-    g = builder_graph
     interview_date = interview_date or date.today().isoformat()
     proc_id = f"INTERVIEW-{person_id}-{equipment_tag}-{wo_id}"
     proc_key = f"Procedure:{proc_id}"
     source_doc = f"interview:{person_id}:{interview_date}"
 
-    g.add_node(
-        proc_key, node_type="Procedure", id=proc_id,
+    run(
+        "MERGE (p:Procedure {key: $proc_key}) "
+        "SET p.id = $proc_id, p.title = $title, p.status = 'captured_from_interview', "
+        "    p.revision = 'Rev 1', p.revision_date = $interview_date, "
+        "    p.answer_text = $answer_text, p.source_document = $source_doc, "
+        "    p.page = 1, p.confidence = 0.9 "
+        "WITH p "
+        "MATCH (eq:Equipment {id: $equipment_tag}) "
+        "MERGE (p)-[r:GOVERNS]->(eq) "
+        "SET r.source_document = $source_doc, r.page = 1, r.confidence = 0.9",
+        proc_key=proc_key, proc_id=proc_id,
         title=f"Captured practice for {equipment_tag} (from retirement interview, ref {wo_id})",
-        status="captured_from_interview", revision="Rev 1", revision_date=interview_date,
-        answer_text=answer_text,
-        source_document=source_doc, page=1, confidence=0.9,
+        interview_date=interview_date, answer_text=answer_text,
+        source_doc=source_doc, equipment_tag=equipment_tag,
     )
-    eq_key = f"Equipment:{equipment_tag}"
-    if eq_key in g:
-        g.add_edge(proc_key, eq_key, key="GOVERNS", edge_type="GOVERNS",
-                   source_document=source_doc, page=1, confidence=0.9)
     return proc_key

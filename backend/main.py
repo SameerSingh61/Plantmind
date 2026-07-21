@@ -3,12 +3,12 @@
 
     uvicorn backend.main:app --reload --port 8000
 
-The graph loads once at startup from data/graph.pkl (built by
-graph/build.py) and lives in-process from there so that work orders
-inserted during a demo session persist across requests until /api/reset.
+Backed by AuraDB (Neo4j) — the graph lives in the cloud instance, not in
+an in-process pickle. /api/reset re-runs the full corpus ingestion against
+AuraDB (a few seconds of network round trips) to discard anything
+inserted during a demo session.
 """
 import json
-import pickle
 import sys
 import time
 from pathlib import Path
@@ -21,16 +21,16 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from graph.briefing_agent import generate_briefing  # noqa: E402
-from graph.build import nid  # noqa: E402
+from graph.build import GraphBuilder  # noqa: E402
+from graph.neo4j_client import run as neo4j_run  # noqa: E402
 from graph.normalizer import TagNormalizer  # noqa: E402
 from graph.parser import parse_document  # noqa: E402
 from graph.query_agent import answer_query  # noqa: E402
 from graph.retirement_agent import (generate_retirement_questions,  # noqa: E402
                                      record_interview_answer)
-from graph.rules import (check_experience_gap, rule_orphaned_knowledge,  # noqa: E402
+from graph.rules import (rule_orphaned_knowledge,  # noqa: E402
                           rule_recurrence_pattern, rule_unclosed_recommendation)
 
-DATA = ROOT / "data"
 CORPUS = ROOT / "corpus"
 
 app = FastAPI(title="PlantMind API")
@@ -38,24 +38,19 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
-STATE = {"g": None, "briefing_feed": [], "normalizer": None}
+STATE = {"briefing_feed": [], "normalizer": None}
 
 
-def load_graph():
-    with open(DATA / "graph.pkl", "rb") as f:
-        g = pickle.load(f)
-    STATE["g"] = g
-    tags = [attrs["id"] for _, attrs in g.nodes(data=True) if attrs.get("node_type") == "Equipment"]
+def refresh_normalizer():
+    tags = [r["tag"] for r in neo4j_run("MATCH (e:Equipment) RETURN e.id AS tag")]
     STATE["normalizer"] = TagNormalizer(tags)
-    STATE["briefing_feed"] = []
-    return g
 
 
-load_graph()
+refresh_normalizer()
 
 
-def g():
-    return STATE["g"]
+def nid(node_type: str, natural_id: str) -> str:
+    return f"{node_type}:{natural_id}"
 
 
 # ---------------------------------------------------------------------------
@@ -63,43 +58,60 @@ def g():
 # ---------------------------------------------------------------------------
 @app.get("/api/graph")
 def get_graph():
-    nodes, edges = [], []
-    for key, attrs in g().nodes(data=True):
-        node = {k: v for k, v in attrs.items() if k != "answer_text"}
-        node["key"] = key
+    node_rows = neo4j_run("MATCH (n) RETURN n, labels(n)[0] AS label")
+    nodes = []
+    for row in node_rows:
+        node = {k: v for k, v in row["n"].items() if k not in ("_labels", "answer_text")}
+        node["key"] = node.get("key")
         nodes.append(node)
-    for u, v, attrs in g().edges(data=True):
-        edges.append({"source": u, "target": v, **attrs})
+
+    edge_rows = neo4j_run(
+        "MATCH (a)-[r]->(b) RETURN a.key AS source, b.key AS target, type(r) AS edge_type, properties(r) AS props"
+    )
+    edges = [{"source": e["source"], "target": e["target"], "edge_type": e["edge_type"], **e["props"]} for e in edge_rows]
     return {"nodes": nodes, "edges": edges}
 
 
 @app.get("/api/graph/node/{node_key:path}")
 def get_node(node_key: str):
-    if node_key not in g():
+    rows = neo4j_run("MATCH (n {key: $key}) RETURN n", key=node_key)
+    if not rows:
         raise HTTPException(404, "node not found")
-    attrs = dict(g().nodes[node_key])
+    attrs = {k: v for k, v in rows[0]["n"].items() if k != "_labels"}
+
     neighbors = []
-    for _, v, d in g().out_edges(node_key, data=True):
-        neighbors.append({"direction": "out", "edge_type": d.get("edge_type"), "node": v})
-    for u, _, d in g().in_edges(node_key, data=True):
-        neighbors.append({"direction": "in", "edge_type": d.get("edge_type"), "node": u})
+    for row in neo4j_run(
+        "MATCH (n {key: $key})-[r]->(m) RETURN type(r) AS edge_type, m.key AS other",
+        key=node_key,
+    ):
+        neighbors.append({"direction": "out", "edge_type": row["edge_type"], "node": row["other"]})
+    for row in neo4j_run(
+        "MATCH (n {key: $key})<-[r]-(m) RETURN type(r) AS edge_type, m.key AS other",
+        key=node_key,
+    ):
+        neighbors.append({"direction": "in", "edge_type": row["edge_type"], "node": row["other"]})
+
     return {"key": node_key, "attrs": attrs, "neighbors": neighbors}
 
 
 @app.get("/api/graph/path")
 def get_path(source: str, target: str):
-    import networkx as nx
-    undirected = g().to_undirected(as_view=True)
-    try:
-        path = nx.shortest_path(undirected, source, target)
-    except nx.NetworkXNoPath:
+    rows = neo4j_run(
+        "MATCH p = shortestPath((a {key: $source})-[*..15]-(b {key: $target})) "
+        "RETURN [n IN nodes(p) | n] AS path_nodes, "
+        "       [r IN relationships(p) | {type: type(r), start: startNode(r).key, end: endNode(r).key}] AS path_rels",
+        source=source, target=target,
+    )
+    if not rows or not rows[0]["path_nodes"]:
         raise HTTPException(404, "no path between these nodes")
-    edges_in_path = []
-    for a, b in zip(path, path[1:]):
-        edge_data = g().get_edge_data(a, b) or g().get_edge_data(b, a) or {}
-        edge_type = next(iter(edge_data.values()), {}).get("edge_type") if edge_data else None
-        edges_in_path.append({"source": a, "target": b, "edge_type": edge_type})
-    nodes_in_path = [{"key": k, **{kk: vv for kk, vv in g().nodes[k].items() if kk != "answer_text"}} for k in path]
+    nodes_in_path = [
+        {"key": n.get("key"), **{k: v for k, v in n.items() if k not in ("_labels", "answer_text")}}
+        for n in rows[0]["path_nodes"]
+    ]
+    edges_in_path = [
+        {"source": r["start"], "target": r["end"], "edge_type": r["type"]}
+        for r in rows[0]["path_rels"]
+    ]
     return {"nodes": nodes_in_path, "edges": edges_in_path}
 
 
@@ -124,36 +136,48 @@ class WorkOrderIn(BaseModel):
 
 
 def _insert_work_order(wo: WorkOrderIn):
-    graph = g()
     eq_tag = STATE["normalizer"].normalize(wo.equipment_tag)
     if not eq_tag:
         raise HTTPException(400, f"unknown equipment tag '{wo.equipment_tag}'")
     person_key = nid("Person", wo.assigned_to)
-    if person_key not in graph:
+    if not neo4j_run("MATCH (p:Person {key: $k}) RETURN p", k=person_key):
         raise HTTPException(400, f"unknown person id '{wo.assigned_to}'")
 
     wo_key = nid("WorkOrder", wo.wo_id)
-    graph.add_node(
-        wo_key, node_type="WorkOrder", id=wo.wo_id,
-        raised_date=wo.raised_date, work_type=wo.work_type, priority=wo.priority,
-        permit_type=wo.permit_type, planned_hours=wo.planned_hours, actual_hours=None,
-        completion_notes=wo.completion_notes, status="open",
-        source_document=f"{wo.wo_id}.md", page=1, confidence=1.0,
-    )
     eq_key = nid("Equipment", eq_tag)
-    graph.add_edge(wo_key, eq_key, key="PERFORMED_ON", edge_type="PERFORMED_ON",
-                   source_document=f"{wo.wo_id}.md", page=1)
-    graph.add_edge(wo_key, person_key, key="ASSIGNED_TO", edge_type="ASSIGNED_TO",
-                   source_document=f"{wo.wo_id}.md", page=1)
+
+    neo4j_run(
+        "MERGE (w:WorkOrder {key: $wo_key}) "
+        "SET w.id = $wo_id, w.raised_date = $raised_date, w.work_type = $work_type, "
+        "    w.priority = $priority, w.permit_type = $permit_type, "
+        "    w.planned_hours = $planned_hours, w.actual_hours = 0, "
+        "    w.completion_notes = $completion_notes, w.status = 'open', "
+        "    w.source_document = $doc, w.page = 1, w.confidence = 1.0 "
+        "WITH w "
+        "MATCH (eq:Equipment {key: $eq_key}) "
+        "MERGE (w)-[:PERFORMED_ON {source_document: $doc, page: 1}]->(eq) "
+        "WITH w "
+        "MATCH (p:Person {key: $person_key}) "
+        "MERGE (w)-[:ASSIGNED_TO {source_document: $doc, page: 1}]->(p)",
+        wo_key=wo_key, wo_id=wo.wo_id, raised_date=wo.raised_date, work_type=wo.work_type,
+        priority=wo.priority, permit_type=wo.permit_type,
+        planned_hours=wo.planned_hours or 0, completion_notes=wo.completion_notes or "",
+        doc=f"{wo.wo_id}.md", eq_key=eq_key, person_key=person_key,
+    )
 
     # recompute this pair's HAS_EXPERIENCE_WITH count
-    count = sum(
-        1 for u, v, d in graph.in_edges(eq_key, data=True)
-        if d.get("edge_type") == "PERFORMED_ON"
-        and any(dd.get("edge_type") == "ASSIGNED_TO" and vv == person_key for _, vv, dd in graph.out_edges(u, data=True))
+    count_rows = neo4j_run(
+        "MATCH (p:Person {key: $person_key})<-[:ASSIGNED_TO]-(w:WorkOrder)-[:PERFORMED_ON]->(eq:Equipment {key: $eq_key}) "
+        "RETURN count(w) AS c",
+        person_key=person_key, eq_key=eq_key,
     )
-    graph.add_edge(person_key, eq_key, key="HAS_EXPERIENCE_WITH", edge_type="HAS_EXPERIENCE_WITH",
-                   work_order_count=count, source_document="derived:work_order_aggregation", confidence=1.0)
+    count = count_rows[0]["c"]
+    neo4j_run(
+        "MATCH (p:Person {key: $person_key}), (eq:Equipment {key: $eq_key}) "
+        "MERGE (p)-[r:HAS_EXPERIENCE_WITH]->(eq) "
+        "SET r.work_order_count = $count, r.source_document = 'derived:work_order_aggregation', r.confidence = 1.0",
+        person_key=person_key, eq_key=eq_key, count=count,
+    )
     return wo_key
 
 
@@ -164,7 +188,7 @@ def create_work_order(wo: WorkOrderIn):
     system speaking first — see acceptance test 5."""
     start = time.time()
     wo_key = _insert_work_order(wo)
-    payload = rule_unclosed_recommendation(g(), wo_key)
+    payload = rule_unclosed_recommendation(wo_key)
     result = {"wo_key": wo_key, "briefing": None}
     if payload:
         briefing = generate_briefing(payload)
@@ -204,12 +228,12 @@ def trigger_storyline_1():
 
 @app.get("/api/sweep/recurrence-patterns")
 def sweep_recurrence_patterns():
-    return {"patterns": rule_recurrence_pattern(g())}
+    return {"patterns": rule_recurrence_pattern()}
 
 
 @app.get("/api/sweep/orphaned-knowledge")
 def sweep_orphaned_knowledge():
-    return {"orphans": rule_orphaned_knowledge(g())}
+    return {"orphans": rule_orphaned_knowledge()}
 
 
 # ---------------------------------------------------------------------------
@@ -221,7 +245,7 @@ class QueryIn(BaseModel):
 
 @app.post("/api/query")
 def query(q: QueryIn):
-    return answer_query(g(), q.question)
+    return answer_query(q.question)
 
 
 # ---------------------------------------------------------------------------
@@ -229,11 +253,11 @@ def query(q: QueryIn):
 # ---------------------------------------------------------------------------
 @app.get("/api/retirement/{equipment_tag}")
 def retirement_questions(equipment_tag: str):
-    orphans = rule_orphaned_knowledge(g())
+    orphans = rule_orphaned_knowledge()
     match = next((o for o in orphans if o["equipment"] == equipment_tag), None)
     if not match:
         raise HTTPException(404, f"no orphaned-knowledge finding for {equipment_tag}")
-    questions = generate_retirement_questions(g(), match)
+    questions = generate_retirement_questions(match)
     return {"finding": match, "questions": questions}
 
 
@@ -246,8 +270,9 @@ class InterviewAnswerIn(BaseModel):
 
 @app.post("/api/retirement/answer")
 def submit_interview_answer(a: InterviewAnswerIn):
-    key = record_interview_answer(g(), a.person_id, a.equipment_tag, a.answer_text, a.wo_id)
-    return {"new_node": key, "attrs": g().nodes[key]}
+    key = record_interview_answer(a.person_id, a.equipment_tag, a.answer_text, a.wo_id)
+    rows = neo4j_run("MATCH (n {key: $k}) RETURN n", k=key)
+    return {"new_node": key, "attrs": rows[0]["n"] if rows else None}
 
 
 # ---------------------------------------------------------------------------
@@ -271,11 +296,21 @@ def get_drawing(drawing_id: str):
 # ---------------------------------------------------------------------------
 @app.post("/api/reset")
 def reset():
-    load_graph()
-    return {"status": "reset", "nodes": g().number_of_nodes(), "edges": g().number_of_edges()}
+    """Re-runs the full corpus ingestion against AuraDB, discarding
+    anything inserted into the graph during this session (demo work
+    orders, retirement-interview answers), and clears the briefing feed."""
+    builder = GraphBuilder()
+    builder.build()
+    builder.flush()
+    refresh_normalizer()
+    STATE["briefing_feed"] = []
+    n = neo4j_run("MATCH (n) RETURN count(n) AS c")[0]["c"]
+    e = neo4j_run("MATCH ()-[r]->() RETURN count(r) AS c")[0]["c"]
+    return {"status": "reset", "nodes": n, "edges": e}
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "nodes": g().number_of_nodes(), "edges": g().number_of_edges(),
-            "briefings_in_feed": len(STATE["briefing_feed"])}
+    n = neo4j_run("MATCH (n) RETURN count(n) AS c")[0]["c"]
+    e = neo4j_run("MATCH ()-[r]->() RETURN count(r) AS c")[0]["c"]
+    return {"status": "ok", "nodes": n, "edges": e, "briefings_in_feed": len(STATE["briefing_feed"])}

@@ -3,11 +3,11 @@
 
     python3 tests/acceptance_tests.py
 
-Tests 5, 8, 9 hit the live backend (start it first: uvicorn backend.main:app).
-Everything else runs directly against the built graph (graph/build.py must
-have been run first).
+Tests 5, 8, 9, 10 hit the live backend (start it first: uvicorn
+backend.main:app --port 8123, or bash scripts/dev.sh). Everything else
+queries AuraDB directly (graph/build.py must have been run at least once
+to populate it).
 """
-import pickle
 import re
 import sys
 import time
@@ -18,6 +18,7 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from graph.neo4j_client import run as neo4j_run  # noqa: E402
 from graph.normalizer import TagNormalizer  # noqa: E402
 from graph.parser import parse_all  # noqa: E402
 from graph.rules import rule_recurrence_pattern  # noqa: E402
@@ -35,16 +36,9 @@ def check(name: str, condition: bool, detail: str = ""):
     return condition
 
 
-def load_graph():
-    with open(ROOT / "data" / "graph.pkl", "rb") as f:
-        return pickle.load(f)
-
-
 def main():
-    g = load_graph()
-    normalizer = TagNormalizer(
-        [attrs["id"] for _, attrs in g.nodes(data=True) if attrs.get("node_type") == "Equipment"]
-    )
+    equipment_tags = [r["tag"] for r in neo4j_run("MATCH (e:Equipment) RETURN e.id AS tag")]
+    normalizer = TagNormalizer(equipment_tags)
 
     # -- Test 1: every operational document references a registered tag ----
     unresolved = []
@@ -73,12 +67,12 @@ def main():
     # near-miss that INVOLVED it, a work order PERFORMED_ON it, or a
     # procedure that GOVERNS it. A governing procedure is a real corpus
     # document about that equipment, same as a work order is.
-    doc_counts = {}
-    for u, v, d in g.edges(data=True):
-        if d.get("edge_type") in ("INVOLVED", "PERFORMED_ON", "GOVERNS"):
-            doc_counts.setdefault(v, set()).add(d.get("source_document"))
-    eq_nodes = [k for k, a in g.nodes(data=True) if a.get("node_type") == "Equipment"]
-    well_documented = sum(1 for e in eq_nodes if len(doc_counts.get(e, set())) >= 3)
+    rows = neo4j_run(
+        "MATCH (eq:Equipment)<-[r:INVOLVED|PERFORMED_ON|GOVERNS]-(x) "
+        "RETURN eq.key AS eq_key, collect(DISTINCT r.source_document) AS docs"
+    )
+    doc_counts = {r["eq_key"]: len(r["docs"]) for r in rows}
+    well_documented = sum(1 for c in doc_counts.values() if c >= 3)
     check(
         "2. 30+/40 equipment items have 3+ linked documents",
         well_documented >= 30,
@@ -86,45 +80,45 @@ def main():
     )
 
     # -- Test 3: all three storylines resolve via pure traversal ------------
-    s1 = None
-    for _, v, d in g.out_edges("Incident:INC-2019-04", data=True):
-        if d.get("edge_type") == "RECOMMENDED":
-            governs = [vv for _, vv, dd in g.out_edges(v, data=True) if dd.get("edge_type") == "GOVERNS"]
-            s1 = len(governs) == 0
-    fm_incidents = [u for u, v, d in g.in_edges("FailureMode:tube_sheet_fouling", data=True) if d.get("edge_type") == "EXHIBITED"]
-    equip = set()
-    for inc in fm_incidents:
-        for _, v, d in g.out_edges(inc, data=True):
-            if d.get("edge_type") == "INVOLVED":
-                equip.add(v)
+    s1_rows = neo4j_run(
+        "MATCH (:Incident {key:'Incident:INC-2019-04'})-[:RECOMMENDED]->(proc:Procedure) "
+        "RETURN NOT (proc)-[:GOVERNS]->() AS unclosed"
+    )
+    s1 = bool(s1_rows and s1_rows[0]["unclosed"])
+
+    s2_rows = neo4j_run(
+        "MATCH (:FailureMode {key:'FailureMode:tube_sheet_fouling'})<-[:EXHIBITED]-(inc:Incident)"
+        "      -[:INVOLVED]->(eq:Equipment) "
+        "RETURN DISTINCT eq.key AS eq_key"
+    )
+    equip = {r["eq_key"] for r in s2_rows}
     s2 = equip == {"Equipment:E-204", "Equipment:E-206", "Equipment:E-211"}
-    v2301_governs = [u for u, v, d in g.in_edges("Equipment:V-2301", data=True) if d.get("edge_type") == "GOVERNS"]
-    s3 = len(v2301_governs) == 0
-    check("3. Storyline 1 (unclosed loop) resolves via traversal", bool(s1))
+
+    s3_rows = neo4j_run(
+        "MATCH (eq:Equipment {key:'Equipment:V-2301'}) "
+        "RETURN NOT (eq)<-[:GOVERNS]-() AS orphaned"
+    )
+    s3 = bool(s3_rows and s3_rows[0]["orphaned"])
+
+    check("3. Storyline 1 (unclosed loop) resolves via traversal", s1)
     check("3. Storyline 2 (cross-equipment pattern) resolves via traversal", s2, f"equipment found: {equip}")
     check("3. Storyline 3 (knowledge cliff) resolves via traversal", s3)
 
     # -- Test 4: a 3-hop question answerable only through the graph ---------
     # Equipment -INVOLVED- Incident -RECOMMENDED-> Procedure -SATISFIES-> RegulatoryClause
-    hop_examples = []
-    for eq_key, attrs in g.nodes(data=True):
-        if attrs.get("node_type") != "Equipment":
-            continue
-        for inc in [u for u, v, d in g.in_edges(eq_key, data=True) if d.get("edge_type") == "INVOLVED"]:
-            for _, proc, d in g.out_edges(inc, data=True):
-                if d.get("edge_type") != "RECOMMENDED":
-                    continue
-                for _, clause, d2 in g.out_edges(proc, data=True):
-                    if d2.get("edge_type") == "SATISFIES":
-                        hop_examples.append((eq_key, inc, proc, clause))
+    hop_rows = neo4j_run(
+        "MATCH (eq:Equipment)<-[:INVOLVED]-(inc:Incident)-[:RECOMMENDED]->(proc:Procedure)"
+        "      -[:SATISFIES]->(clause:RegulatoryClause) "
+        "RETURN eq.key AS eq_key, inc.key AS inc_key, proc.key AS proc_key, clause.key AS clause_key LIMIT 1"
+    )
     check(
         "4. A 3-hop Equipment→Incident→Procedure→RegulatoryClause chain exists",
-        len(hop_examples) > 0,
-        f"e.g. {hop_examples[0]}" if hop_examples else "none found",
+        len(hop_rows) > 0,
+        f"e.g. {tuple(hop_rows[0].values())}" if hop_rows else "none found",
     )
 
     # -- Test 6: recurrence pattern rule finds the exchanger pattern ---------
-    patterns = rule_recurrence_pattern(g)
+    patterns = rule_recurrence_pattern()
     flagship = next((p for p in patterns if p["failure_mode"] == "tube_sheet_fouling"), None)
     check(
         "6. Rule 2 surfaces the E-204/E-206/E-211 pattern unprompted",
@@ -154,7 +148,7 @@ def main():
         check("8. Out-of-corpus question triggers refusal + names a real Person", False, "backend not running")
         check("9. Graph explorer path P-101A -> INC-2019-04 -> missing procedure", False, "backend not running")
     else:
-        requests.post(f"{API}/api/reset", timeout=5)
+        requests.post(f"{API}/api/reset", timeout=30)
         start = time.time()
         resp = requests.post(f"{API}/api/demo/trigger-storyline-1", timeout=15).json()
         elapsed = time.time() - start
@@ -170,9 +164,8 @@ def main():
             f"{API}/api/query", json={"question": "What is the design pressure rating for V-2301?"}, timeout=15
         ).json()
         person = refusal.get("person_to_ask")
-        person_is_real = bool(person) and any(
-            attrs.get("node_type") == "Person" and attrs.get("name") == person.get("name")
-            for _, attrs in g.nodes(data=True)
+        person_is_real = bool(person) and bool(
+            neo4j_run("MATCH (p:Person {name: $name}) RETURN p", name=person.get("name"))
         )
         check(
             "8. Out-of-corpus question triggers refusal + names a real Person",

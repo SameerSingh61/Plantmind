@@ -4,8 +4,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-if [ ! -f data/graph.pkl ]; then
-  echo "data/graph.pkl not found — building it from corpus/ first..."
+NODE_COUNT=$(python3 -c "
+from graph.neo4j_client import run
+print(run('MATCH (n) RETURN count(n) AS c')[0]['c'])
+" 2>/dev/null || echo "0")
+if [ "$NODE_COUNT" = "0" ]; then
+  echo "AuraDB instance is empty — building the graph from corpus/ first..."
   python3 graph/build.py
 fi
 

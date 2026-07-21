@@ -19,22 +19,27 @@ architecture link below for the full reasoning.
 ```
 corpus/       150+ generated + hand-authored source documents (the "plant records")
 scripts/      generators that produce the corpus (deterministic, seeded)
-graph/        ingestion pipeline, tag normalizer, trigger rules, the 3 agents
+graph/        ingestion pipeline, tag normalizer, trigger rules, the 3 agents, neo4j_client.py
 backend/      FastAPI app wiring it all together
 frontend/     React + Vite + Tailwind + Cytoscape.js UI
-data/         graph.pkl + graph_export.json — build artifacts, gitignored, regenerate below
 tests/        acceptance_tests.py — the 10 acceptance tests from the build brief
 ```
+
+The knowledge graph itself lives in a Neo4j AuraDB instance (free tier), not a local file —
+`graph/build.py` ingests the corpus straight into it over the network.
 
 ## First-time setup
 
 ```bash
 # Python deps (no venv in use here — adjust if your team wants one)
-pip install networkx fastapi uvicorn pydantic pyyaml pandas openai requests python-dotenv
+pip install fastapi uvicorn pydantic pyyaml pandas openai neo4j requests python-dotenv
 
 # Frontend deps
 cd frontend && npm install && cd ..
 ```
+
+You'll also need an AuraDB instance — see Environment Variables below for how to create one and
+where its connection details go.
 
 ## Regenerate the corpus + graph
 
@@ -45,8 +50,12 @@ to the new ones:
 
 ```bash
 bash scripts/regenerate_corpus.sh   # wipes + rebuilds corpus/02-07
-python3 graph/build.py              # ingests corpus/ -> data/graph.pkl
+python3 graph/build.py              # ingests corpus/ -> wipes and rebuilds the AuraDB instance
 ```
+
+`graph/build.py` wipes the entire AuraDB instance before re-ingesting (`MATCH (n) DETACH DELETE n`),
+so anything inserted live during a demo (work orders, retirement-interview answers) is discarded on
+every rebuild — that's intentional, same as the old pickle-based "reset" behaved.
 
 ## Run it
 
@@ -75,8 +84,8 @@ Open `http://localhost:5173`. Four tabs: Briefings, Ask, Explorer, Retirement.
 python3 tests/acceptance_tests.py
 ```
 
-Tests 5, 8, 9 need the backend running on `:8123`; everything else runs directly against
-`data/graph.pkl`. All 10 acceptance tests from the build brief pass as of this commit.
+Tests 5, 8, 9, 10 need the backend running on `:8123`; everything else queries AuraDB directly.
+All 10 acceptance tests from the build brief pass as of this commit.
 
 ## Environment variables
 
@@ -95,6 +104,13 @@ cp .env.example .env
   acceptance test and the demo script were verified to work without this key. Set it to see actual
   generated prose instead of the templates. Model id is the single `MODEL` constant in
   `graph/llm.py` (`gpt-4o` by default) — change it to whatever model your account has access to.
+- `NEO4J_URI` / `NEO4J_USER` / `NEO4J_PASSWORD` / `NEO4J_DATABASE` — **required**, no fallback for
+  these (there's no offline graph store anymore). Create a free instance at
+  [neo4j.com/cloud/aura-free](https://neo4j.com/cloud/aura-free/) → New Instance → AuraDB Free.
+  **Save the generated password immediately** — AuraDB shows it once, at creation time; if you lose
+  it, use the instance's "..." menu → "Recover Database Credentials" to reset it. Connection URI
+  looks like `neo4j+s://xxxxxxxx.databases.neo4j.io`; username is normally `neo4j`;
+  `NEO4J_DATABASE` is normally just `neo4j`.
 - `VITE_API_BASE` — frontend env var pointing at the backend URL (see Run It above).
 
 ## Known scope decisions (stated plainly, not hidden)
@@ -117,11 +133,9 @@ cp .env.example .env
   line directions, a dropped endpoint, and on the busiest sheet, 3 of 19 equipment symbols missed
   entirely). `scripts/finalize_pid_drawings.py` writes the corrected, verified output that actually
   ships in `corpus/01_drawings/*.json`.
-- **Graph engine is NetworkX, not Neo4j** — no Docker was available in the build environment. Every
-  trigger rule in `graph/rules.py` is written as a small named function shaped like the equivalent
-  Cypher query specifically so porting to real Neo4j is mechanical, not a rewrite.
-- **No git history before this commit** — the whole build happened in one session; this is the
-  first commit, not a curated history.
+- **Graph engine is real Neo4j (AuraDB Free)**, not an in-memory NetworkX graph — Docker wasn't
+  available in the build environment, so AuraDB's hosted free tier was used instead. Every trigger
+  rule in `graph/rules.py` is a real Cypher query, not a Python graph traversal.
 
 ## The three planted storylines (for anyone reading the corpus cold)
 
