@@ -9,10 +9,13 @@ architecture link below for the full reasoning.
 ## Deliverables
 
 - Working prototype — this repo, run it with the steps below
-- [Architecture diagram](https://claude.ai/code/artifact/a2f4ef32-6cc4-4806-a56c-a6c04848134e)
-- [Presentation deck](https://claude.ai/code/artifact/cb1883f9-0233-427f-ba4e-c9a82f0a85bc)
-- [Demo video script](https://claude.ai/code/artifact/f8c89abc-06d1-49e9-9e69-458bc94d6452) — the
-  actual video still needs to be recorded by a human following this script; nothing here can do that.
+- [Architecture diagram](docs/architecture.md) — renders directly on GitHub, mermaid diagrams included
+- [Presentation deck](https://htmlpreview.github.io/?https://github.com/SameerSingh61/Plantmind/blob/main/docs/presentation-deck.html) — or open `docs/presentation-deck.html` locally in a browser
+- [Demo video script](docs/demo-script.md) — the actual video still needs to be recorded by a human
+  following this script; nothing here can do that.
+
+These live in `docs/` so they're viewable straight from the repo — no separate account or sign-in
+needed to view them.
 
 ## Repo layout
 
