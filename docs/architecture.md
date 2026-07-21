@@ -51,13 +51,13 @@ flowchart TB
 
     classDef corpus fill:#141f2e,stroke:#8593a8,color:#e7ecf2
     classDef pipe fill:#101826,stroke:#46c2b9,color:#e7ecf2
-    classDef graph fill:#101826,stroke:#f2a53c,color:#f2a53c,stroke-width:2px
+    classDef graphdb fill:#101826,stroke:#f2a53c,color:#f2a53c,stroke-width:2px
     classDef rule fill:#141f2e,stroke:#46c2b9,color:#e7ecf2
     classDef agent fill:#141f2e,stroke:#e2626b,color:#e7ecf2
     classDef ui fill:#0a0f16,stroke:#f2a53c,color:#f2a53c,stroke-width:2px
     class C1,C2,C3,C4,C5,C6 corpus
     class ING pipe
-    class GRAPH graph
+    class GRAPH graphdb
     class R1,R2,R3,R4 rule
     class BRIEF,QUERY,RETIRE agent
     class API,UI ui

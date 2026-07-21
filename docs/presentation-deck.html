@@ -482,7 +482,7 @@ records"]:::doc
 parser + tag normalizer"]:::pipe
     ING --> GRAPH["Knowledge Graph
 7 node types / 9 edge types
-(Neo4j / AuraDB Free)"]:::graph
+(Neo4j / AuraDB Free)"]:::graphdb
 
     GRAPH --> R1["Rule 1
 unclosed_recommendation"]:::rule
@@ -515,7 +515,7 @@ Briefings / Ask / Explorer / Retirement"]:::ui
 
     classDef doc fill:#141f2e,stroke:#8593a8,color:#e7ecf2
     classDef pipe fill:#101826,stroke:#46c2b9,color:#e7ecf2
-    classDef graph fill:#101826,stroke:#f2a53c,color:#f2a53c,stroke-width:2px
+    classDef graphdb fill:#101826,stroke:#f2a53c,color:#f2a53c,stroke-width:2px
     classDef rule fill:#141f2e,stroke:#46c2b9,color:#e7ecf2
     classDef agent fill:#141f2e,stroke:#e2626b,color:#e7ecf2
     classDef ui fill:#0a0f16,stroke:#f2a53c,color:#f2a53c,stroke-width:2px
@@ -706,4 +706,22 @@ Briefings / Ask / Explorer / Retirement"]:::ui
       sheets[current].scrollIntoView({ behavior: 'smooth' });
     }
   });
+</script>
+
+<script type="module">
+  // This file is served two ways: as a Claude Artifact (which renders
+  // <pre class="mermaid"> blocks natively — no script needed there) and
+  // as a plain static file straight from the GitHub repo (via
+  // htmlpreview.github.io or opened locally), which has no such native
+  // handling. Detect the unrendered case and load Mermaid ourselves so
+  // the diagram still renders wherever this file is actually viewed.
+  const unrendered = document.querySelector("pre.mermaid");
+  if (unrendered && !unrendered.querySelector("svg")) {
+    try {
+      const mermaid = (await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs")).default;
+      mermaid.initialize({ startOnLoad: true, theme: "dark" });
+    } catch (e) {
+      console.warn("Mermaid CDN load failed; diagram will show as raw text.", e);
+    }
+  }
 </script>
